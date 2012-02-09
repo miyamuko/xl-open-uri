@@ -26,6 +26,7 @@
 (in-package :user)
 
 (require "xl-open-uri/api")
+(require "xl-open-uri/core-extensions")
 (require "xl-open-uri/version")
 
 (provide "xl-open-uri")

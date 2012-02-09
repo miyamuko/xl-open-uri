@@ -29,42 +29,44 @@
 
 (in-package :xl-open-uri)
 
-(defparameter *stream-object*
-  (make-hash-table))
+(defvar *stream-meta* (make-hash-table))
 
-(defun register (stream package object)
-  (setf (gethash stream *stream-object*)
-        (list package object)))
+(defun register-meta (stream package meta)
+  (setf (gethash stream *stream-meta*)
+        (list package meta)))
 
-(defun unregister (stream)
-  (remhash stream *stream-object*))
+(defun unregister-meta (stream)
+  (remhash stream *stream-meta*))
 
-(defun fetch (stream)
+(defun get-meta (stream)
   (values-list
-   (gethash stream *stream-object*)))
+   (gethash stream *stream-meta*)))
 
 
-(defun get-meta-info (stream type)
-  (multiple-value-bind (package object)
-      (fetch stream)
-    (when (and package object)
+(defun dispatch-meta-accessor (stream type &rest options)
+  (multiple-value-bind (package meta)
+      (get-meta stream)
+    (when (and package meta)
       (let ((fn (intern (string type) package)))
         (when (fboundp fn)
-          (funcall fn object))))))
+          (apply fn meta options))))))
 
-(defmacro define-meta (type)
+(defmacro define-meta-accessor (type)
   `(progn
      (defun ,type (stream)
-       (get-meta-info stream ',type))
+       (dispatch-meta-accessor stream ',type))
      (export ',type)))
 
-(define-meta meta)
-(define-meta status)
-(define-meta base-uri)
-(define-meta content-type)
-(define-meta content-encoding)
-(define-meta charset)
-(define-meta last-modified)
+(define-meta-accessor status)
+(define-meta-accessor base-uri)
+(define-meta-accessor content-type)
+(define-meta-accessor content-encoding)
+(define-meta-accessor charset)
+(define-meta-accessor last-modified)
+
+(defun meta (stream &optional key)
+  (dispatch-meta-accessor stream 'meta key))
+(export 'meta)
 
 
 (provide "xl-open-uri/meta")

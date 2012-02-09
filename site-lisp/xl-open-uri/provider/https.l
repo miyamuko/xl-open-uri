@@ -1,4 +1,4 @@
-; -*- mode: lisp; package: xl-open-uri.http; encoding: shift_jis -*-
+; -*- mode: lisp; package: xl-open-uri.provider.https; encoding: shift_jis -*-
 
 ;; Copyright (c) 2012 MIYAMUKO Katsuyuki.
 ;;
@@ -27,6 +27,6 @@
   (require "xl-open-uri/http/http")
   )
 
-(provide "xl-open-uri/https/https")
+(provide "xl-open-uri/provider/https")
 
 ;;; End

@@ -1,4 +1,4 @@
-; -*- mode: lisp; package: user; encoding: shift_jis -*-
+; -*- mode: lisp; package: xl-open-uri.core-extensions; encoding: shift_jis -*-
 
 ;; Copyright (c) 2012 MIYAMUKO Katsuyuki.
 ;;
@@ -24,18 +24,51 @@
 ;;; Code:
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (require "ansify")
+  (require "xl-open-uri/api")
 
-  (unless (find-package :xl-open-uri)
-    (defpackage :xl-open-uri
-      (:nicknames :open-uri)
+  (unless (find-package :xl-open-uri.core-extensions)
+    (defpackage :xl-open-uri.core-extensions
+      (:nicknames :open-uri.ext :xl-open-uri.ext :open-uri.core-extensions)
       (:use
        :lisp
-       :editor
+       :xl-open-uri
        )
       )))
-(ansify::install :xl-open-uri)
 
-(provide "xl-open-uri/package")
+(in-package :xl-open-uri.core-extensions)
+
+(shadow '(open
+          with-open-file
+          ))
+
+(export '(open
+          with-open-file
+          install
+          uninstall
+          ))
+
+(defun open (uri &rest options)
+  (apply 'open-uri uri options))
+
+(defmacro with-open-file ((stream filename &rest options) &body body)
+  `(with-open-stream (,stream (open ,filename ,@options))
+     ,@body))
+(setf (get 'with-open-file 'ed:lisp-indent-hook) 1)
+
+
+(defun install (&optional (package *package*))
+  (import-extensions :import-from :xl-open-uri.core-extensions
+                     :package package))
+
+(defun uninstall (&optional (package *package*))
+  (import-extensions :import-from :lisp
+                     :package package))
+
+(defun import-extensions (&key import-from package)
+  (dolist (sym '(open with-open-file))
+    (shadowing-import (intern (string sym) import-from) package)))
+
+
+(provide "xl-open-uri/core-extensions")
 
 ;;; End

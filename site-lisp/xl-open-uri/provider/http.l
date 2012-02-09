@@ -1,4 +1,4 @@
-; -*- mode: lisp; package: xl-open-uri.http; encoding: shift_jis -*-
+; -*- mode: lisp; package: xl-open-uri.provider.http; encoding: shift_jis -*-
 
 ;; Copyright (c) 2012 MIYAMUKO Katsuyuki.
 ;;
@@ -30,34 +30,37 @@
   (require "xl-open-uri/package")
   (require "xl-open-uri/meta")
 
-  (unless (find-package :xl-open-uri.http)
-    (defpackage :xl-open-uri.http
-      (:nicknames :xl-open-uri.https)
+  (unless (find-package :xl-open-uri.provider.http)
+    (defpackage :xl-open-uri.provider.http
+      (:nicknames :xl-open-uri.provider.https)
       (:use
        :lisp
        :editor
        :http-client
        )
       )))
-(ansify::install :xl-open-uri)
+(ansify::install :xl-open-uri.provider.http)
 
-(in-package :xl-open-uri.http)
+(in-package :xl-open-uri.provider.http)
+
+(defvar *default-content-type* "application/octet-stream")
+(defvar *default-text-charset* "iso-8859-1")
+(defvar *read-wait-interval* 0.2)
 
 (defun open-uri (uri &key
                      method headers query body encoding
                      auth proxy-auth
                      (proxy *http-proxy*)
                      no-redirect)
-  (let (client stream chunks error)
+  (let (client chunks error)
     (labels ((completed-p ()
                (or (not client)
-                   (not stream)
                    (http-response-completed-p client)))
              (reader ()
                (while (and (not chunks)
                            (not error)
                            (not (completed-p)))
-                 (sleep-for 0.2))
+                 (http-response-wait client :timeout *read-wait-interval* :abort-on-quit nil))
                (when error
                  (error error))
                (when chunks
@@ -65,16 +68,13 @@
                      (apply 'concat (nreverse chunks))
                    (setf chunks nil))))
              (closer (abort)
-               (when (and client stream)
+               (when client
                  (unless (completed-p)
                    (http-request-abort client))
-                 (xl-open-uri::unregister stream)
                  (setf chunks nil
-                       client nil
-                       stream nil)))
+                       client nil)))
              (listener ()
-               (or chunks
-                   (not (completed-p)))))
+               (not (null chunks))))
       (setf client (http-request method uri body
                                  :query query
                                  :headers headers
@@ -85,19 +85,18 @@
                                  :no-redirect no-redirect
                                  :receiver (http-general-receiver
                                             #'(lambda (chunk)
-                                                (unless (completed-p)
-                                                  (push chunk chunks))
-                                                stream))
+                                                (when chunk
+                                                  (push chunk chunks))))
                                  :onerror #'(lambda (err)
                                               (setf error err))
                                  ))
-      (setf stream (make-general-input-stream #'reader #'closer #'listener))
-      (xl-open-uri::register stream :xl-open-uri.http client)
-      stream
+      (values #'reader #'closer #'listener client)
       )))
 
-(defun meta (client)
-  (http-response-header-alist client))
+(defun meta (client &optional key)
+  (if key
+      (http-response-header client key)
+    (http-response-header-alist client)))
 
 (defun status (client)
   (values (http-response-status client)
@@ -107,13 +106,19 @@
   (http-request-uri client))
 
 (defun content-encoding (client)
-  (http-response-header client :content-encoding))
+  (let ((v (http-response-header client :content-encoding)))
+    (when v
+      (mapcar #'normalize (split-string v #\,)))))
 
 (defun content-type (client)
-  (car (http-content-type client)))
+  (nth-value 0 (http-content-type client)))
 
 (defun charset (client)
-  (cadr (http-content-type client)))
+  (multiple-value-bind (type charset)
+      (http-content-type client)
+    (or charset
+        (when (and type (string-match "^text/" type))
+          *default-text-charset*))))
 
 (defun last-modified (client)
   (let ((date (http-response-header client :last-modified)))
@@ -129,10 +134,16 @@
   (when (and content-type
              (string-matchp "\\`\\(.+?\\)\\(?:; *charset=\"?\\([^ ;\"]+\\)\"?\\)?\\'"
                             content-type))
-    (list (match-string 1)
-          (match-string 2))))
+    (let ((type (match-string 1))
+          (charset (match-string 2)))
+      (values (normalize type)
+              (normalize charset)))))
+
+(defun normalize (s)
+  (when s
+    (string-downcase (http-client.base::strip s))))
 
 
-(provide "xl-open-uri/http/http")
+(provide "xl-open-uri/provider/http")
 
 ;;; End

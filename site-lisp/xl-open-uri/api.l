@@ -30,23 +30,43 @@
 
 (in-package :xl-open-uri)
 
-(export '(open
+(export '(open-uri
+          with-open-uri
           ))
 
-(defun open (uri &rest args)
+(defmacro with-open-uri ((stream uri &rest options) &body body)
+  `(with-open-stream (,stream (open-uri ,uri ,@options))
+     ,@body))
+(setf (get 'with-open-uri 'ed:lisp-indent-hook) 1)
+
+(defun open-uri (uri &rest options)
   (check-type uri string)
   (cond ((string-match "\\`\\([a-z]+\\)://" uri)
          (cond ((string= (match-string 1) "file")
-                (apply 'lisp:open (substring uri (match-end 0)) args))
+                (apply 'lisp:open (substring uri (match-end 0)) options))
                (t
-                (apply 'open-uri (match-string 1) uri args))))
+                (apply 'open-uri-internal (match-string 1) uri options))))
         (t
-         (apply 'lisp:open uri args))
+         (apply 'lisp:open uri options))
         ))
 
-(defun open-uri (scheme uri &rest args)
-  (let ((module (format nil "xl-open-uri/~A/~A" scheme scheme))
-        (pkgname (format nil "xl-open-uri.~A" scheme)))
+(defun open-uri-internal (scheme uri &rest options)
+  (let ((fn (find-open-function scheme uri)))
+    (multiple-value-bind (reader closer listener meta)
+        (apply fn uri options)
+      (let (stream)
+        (setf stream (make-general-input-stream reader
+                                                #'(lambda (abort)
+                                                    (unwind-protect
+                                                        (funcall closer abort)
+                                                      (unregister-meta stream)))
+                                                listener))
+        (register-meta stream (symbol-package fn) meta)
+        stream))))
+
+(defun find-open-function (scheme uri)
+  (let* ((module (format nil "xl-open-uri/provider/~A" scheme))
+         (pkgname (substitute #\. #\/ module)))
     (unless (find-load-path module)
       (error "~A not supported: ~A" scheme uri))
     (require module)
@@ -56,10 +76,9 @@
       (let ((fn (intern "open-uri" pkg)))
         (unless (fboundp fn)
           (error "Function not defined: ~A:open-uri" pkgname))
-        (apply fn uri args)))))
+        fn))))
 
 
 (provide "xl-open-uri/api")
-
 
 ;;; End
