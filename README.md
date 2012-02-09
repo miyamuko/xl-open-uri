@@ -1,4 +1,4 @@
-# xl-open-uri - blur blur blur
+# xl-open-uri - open-uri for xyzzy Lisp.
 
 * Home URL: http://miyamuko.s56.xrea.com/xyzzy/xl-open-uri/intro.htm
 * Version: 0.0.1
@@ -7,47 +7,99 @@
 ## SYNOPSIS
 
 ```lisp
-(require "xl-open-uri")
-(xl-open-uri)
+user> (require "open-uri")
+t
 
-blur blur blur ...
+user> (with-open-stream (f (open-uri:open-uri "http://www.ruby-lang.org/"))
+        (loop
+          (format t "~A~%" (or (read-line f nil nil)
+                               (return)))))
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+...
+nil
+
+;; メタ情報の取得
+user> (open-uri:with-open-uri (f "http://www.ruby-lang.org/"
+                                 :headers '(:Accept-Language "ja, en"))
+        (values (multiple-value-list (open-uri:status f))
+                (open-uri:meta f)
+                (open-uri:meta f :content-length)
+                (open-uri:base-uri f)
+                (open-uri:content-type f)
+                (open-uri:charset f)))
+(200 "OK") ;
+(("Connection" . "Keep-Alive") ("Date" . "Thu, 09 Feb 2012 12:42:18 GMT") ...) ;
+nil ;
+"http://www.ruby-lang.org/ja/" ;
+"text/html" ;
+"utf-8"
+
+;; open と with-open-file を URI 対応にする
+user> (open-uri.ext:install)
+nil
+
+;; Content-Encoding の取得 (gzip の展開は自動的には行われません)
+user> (with-open-file (f "http://www.yahoo.co.jp/"
+                         :headers '(:Accept-Encoding "gzip, deflate"))
+        (open-uri:content-encoding f))
+("gzip")
+
+;; HEAD リクエストの送信
+user> (with-open-file (f "http://www.jsdlab.co.jp/~kamei/cgi-bin/download.cgi"
+                         :method "HEAD")
+        (decode-universal-time
+         (open-uri:last-modified f)))
+21 ;
+28 ;
+1 ;
+8 ;
+12 ;
+2005 ;
+3 ;
+nil ;
+-9
 ```
+
 
 ## DESCRIPTION
 
-xl-open-uri は xyzzy から...
+xl-open-uri は Ruby の [open-uri] を xyzzy Lisp に移植したライブラリです。
+HTTP/HTTPS に簡単にアクセスするための機能を提供します。
+
+なお、xl-open-uri は FTP はサポートしていません。
+
+  [open-uri]: http://doc.ruby-lang.org/ja/1.9.3/library/open=2duri.html
 
 
 ## INSTALL
 
-1. [NetInstaller](http://www7a.biglobe.ne.jp/~hat/xyzzy/ni.html)
-   で xl-open-uri, foo, bar をインストールします。
+1. [NetInstaller] で xl-open-uri, http-client, xl-winhttp, xl-alexandria, ansi-loop, ansify, setf-values
+   をインストールします。
 
-2. ni-autoload を利用していない場合は、
-   ~/.xyzzy または site-lisp/siteinit.l に以下のコードを追加します。
+2. xl-open-uri はライブラリであるため自動的にロードはされません。
+   必要な時点で require してください。
 
-     (require "xl-open-uri")
+  [NetInstaller]: http://www7a.biglobe.ne.jp/~hat/xyzzy/ni.html
 
-   ※ ni-autoload を利用している場合は設定は不要です。
 
-3. 設定を反映させるため xyzzy を再起動してください。
+## REFERENCE
 
-   ※siteinit.l に記述した場合には再ダンプが必要です。
+* references/ 配下を見てください。
 
 
 ## TODO
 
-なし。
+* FTP サポート?
 
 
 ## KNOWN BUGS
 
 なし。
 
-要望やバグは
-[GitHub Issues](http://github.com/miyamuko/xl-open-uri/issues) か
-[@miyamuko](http://twitter.com/home?status=%40miyamuko%20%23xyzzy%20xl-open-uri%3a%20)
-まで。
+要望やバグは [GitHub Issues] か [@miyamuko] まで。
+
+  [GitHub Issues]: http://github.com/miyamuko/xl-open-uri/issues
+  [@miyamuko]: http://twitter.com/home?status=%40miyamuko%20%23xyzzy%20xl-open-uri%3a%20
 
 
 ## AUTHOR
