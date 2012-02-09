@@ -1,0 +1,6 @@
+2012-02-09  MIYAMUKO Katsuyuki
+
+	* http, https をサポート
+
+	* open-uri 作成開始
+

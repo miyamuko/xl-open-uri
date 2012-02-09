@@ -1,0 +1,19 @@
+package: open-uri
+version: 0.0.1
+
+sources:
+  include:
+    - site-lisp/open-uri/**/*.l
+  exclude:
+    - site-lisp/open-uri/**/test/*.l
+
+document:
+  - README.md
+
+depends:
+  - http-client
+  - xl-winhttp
+  - xl-alexandria
+  - ansi-loop
+  - ansify
+  - setf-values
