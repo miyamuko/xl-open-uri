@@ -1,4 +1,4 @@
-; -*- mode: lisp; package: xl-open-uri; encoding: shift_jis -*-
+; -*- mode: lisp; package: user; encoding: shift_jis -*-
 
 ;; Copyright (c) 2012 MIYAMUKO Katsuyuki.
 ;;
@@ -23,61 +23,10 @@
 
 ;;; Code:
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (require "xl-open-uri/package")
-  (require "xl-open-uri/meta")
-  )
+(in-package :user)
 
-(in-package :xl-open-uri)
-
-(export '(open-uri
-          with-open-uri
-          ))
-
-(defmacro with-open-uri ((stream uri &rest options) &body body)
-  `(with-open-stream (,stream (open-uri ,uri ,@options))
-     ,@body))
-(setf (get 'with-open-uri 'ed:lisp-indent-hook) 1)
-
-(defun open-uri (uri &rest options)
-  (check-type uri string)
-  (cond ((string-match "\\`\\([a-z]+\\)://" uri)
-         (cond ((string= (match-string 1) "file")
-                (apply 'lisp:open (substring uri (match-end 0)) options))
-               (t
-                (apply 'open-uri-internal (match-string 1) uri options))))
-        (t
-         (apply 'lisp:open uri options))
-        ))
-
-(defun open-uri-internal (scheme uri &rest options)
-  (let ((fn (find-open-function scheme uri)))
-    (multiple-value-bind (reader closer listener meta)
-        (apply fn uri options)
-      (let (stream)
-        (setf stream (make-general-input-stream reader
-                                                #'(lambda (abort)
-                                                    (unwind-protect
-                                                        (funcall closer abort)
-                                                      (unregister-meta stream)))
-                                                listener))
-        (register-meta stream (symbol-package fn) meta)
-        stream))))
-
-(defun find-open-function (scheme uri)
-  (let* ((module (format nil "xl-open-uri/provider/~A" scheme))
-         (pkgname (substitute #\. #\/ module)))
-    (unless (find-load-path module)
-      (error "~A not supported: ~A" scheme uri))
-    (require module)
-    (let ((pkg (find-package pkgname)))
-      (unless pkg
-        (error "Package not found: ~A" pkgname))
-      (let ((fn (intern "open-uri" pkg)))
-        (unless (fboundp fn)
-          (error "Function not defined: ~A:open-uri" pkgname))
-        fn))))
-
+(require "xl-open-uri/api/api")
+(require "xl-open-uri/api/version")
 
 (provide "xl-open-uri/api")
 

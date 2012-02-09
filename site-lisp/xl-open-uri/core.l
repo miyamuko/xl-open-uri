@@ -25,11 +25,11 @@
 
 (in-package :user)
 
-(require "xl-open-uri/core")
-(require "xl-open-uri/api")
-(require "xl-open-uri/extensions")
-(require "xl-open-uri/protocols")
+(require "xl-open-uri/core/types")
+(require "xl-open-uri/core/context")
+(require "xl-open-uri/core/handler")
+(require "xl-open-uri/core/cleanup")
 
-(provide "xl-open-uri")
+(provide "xl-open-uri/core")
 
 ;;; End

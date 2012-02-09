@@ -1,4 +1,4 @@
-# xl-open-uri API Reference
+# xl-open-uri.api API Reference
 
   * [PACKAGES](#packages)
     * [xl-open-uri](#xl-open-uri)
@@ -6,6 +6,8 @@
     * [with-open-uri](#with-open-uri)
   * [FUNCTIONS](#functions)
     * [open-uri](#open-uri)
+    * [close-uri](#close-uri)
+    * [read-to-end](#read-to-end)
     * [base-uri](#base-uri)
     * [charset](#charset)
     * [content-encoding](#content-encoding)
@@ -19,12 +21,14 @@
 
 ## <a name="packages">PACKAGES</a>
 
-### Package: <a name="xl-open-uri"><em>xl-open-uri</em></a>
+### Package: <a name="xl-open-uri.api"><em>xl-open-uri</em></a>
 
 xl-open-uri の API を定義するパッケージです。
 
 ニックネームは以下のとおりです。
 
+  * `open-uri.api`
+  * `xl-open-uri`
   * `open-uri`
 
 
@@ -63,6 +67,7 @@ user> (open-uri:with-open-uri (f "http://www.ruby-lang.org/"
 __See Also:__
 
   * [open-uri](#open-uri)
+  * [close-uri](#close-uri)
 
 
 ----
@@ -70,20 +75,45 @@ __See Also:__
 ## <a name="functions">FUNCTIONS</a>
 
 
-### Function: <a name="open-uri"><em>open-uri</em></a> <i>`URI` &key `:method` `:headers` `:query` `:body` `:encoding` `:auth` `:proxy-auth` (`:proxy` \*http-proxy\*) `:no-redirect`</i>
+### Function: <a name="open-uri"><em>open-uri</em></a> <i>`URI` &key `:method` `:headers` `:query` `:body` `:encoding` `:response-encoding` `:auth` `:proxy-auth` (`:proxy` \*http-proxy\*) `:no-redirect`</i>
 
 指定された `URI` からストリームを作成します。
 
-引数は [http-request] に渡せるものと同じです。
-ただし、`:receiver`, `:wait`, `:onprogress`, `:oncomplete`, `:onabort`, `:onerror` については指定できません。
+  * `:response-encoding` 以外の引数
+
+    [http-request] に渡せるものと同じです。
+
+    なお、 `:receiver`, `:wait`, `:onprogress`, `:oncomplete`, `:onabort`, `:onerror`
+    については指定できません。
+
+  * `:response-encoding`
+
+    [http-general-receiver] の `:encoding` 引数に指定されます。
 
   [http-request]: https://github.com/miyamuko/http-client/blob/master/reference/http-client.md#http-request
+  [http-general-receiver]: https://github.com/miyamuko/http-client/blob/master/reference/http-client.md#http-general-receiver
 
 __See Also:__
 
   * [with-open-uri](#with-open-uri)
+  * [close-uri](#close-uri)
   * with-open-stream
   * http-request
+
+
+### Function: <a name="close-uri"><em>close-uri</em></a> <i>`STREAM` &key `:abort`</i>
+
+指定されたストリームを閉じます。
+open-uri でオープしたストリームは、通常の close ではなくこの関数で閉じてください。
+
+__See Also:__
+
+  * [open-uri](#open-uri)
+
+
+### Function: <a name="read-to-end"><em>read-to-end</em></a> <i>`STREAM` &optional `ENCODING`</i>
+
+TODO
 
 
 ### Function: <a name="base-uri"><em>base-uri</em></a> <i>`STREAM`</i>

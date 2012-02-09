@@ -1,4 +1,4 @@
-; -*- mode: lisp; package: xl-open-uri.provider.http; encoding: shift_jis -*-
+; -*- mode: lisp; package: xl-open-uri.protocols.http; encoding: shift_jis -*-
 
 ;; Copyright (c) 2012 MIYAMUKO Katsuyuki.
 ;;
@@ -26,29 +26,42 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require "ansify")
   (require "http-client")
+  (require "xl-alexandria")
+  (require "xl-open-uri/protocols")
 
-  (require "xl-open-uri/package")
-  (require "xl-open-uri/meta")
-
-  (unless (find-package :xl-open-uri.provider.http)
-    (defpackage :xl-open-uri.provider.http
-      (:nicknames :xl-open-uri.provider.https)
+  (unless (find-package :xl-open-uri.protocols.http)
+    (defpackage :xl-open-uri.protocols.http
+      (:nicknames :xl-open-uri.protocols.https)
       (:use
        :lisp
        :editor
+       :alexandria
        :http-client
        )
+      (:shadowing-import-from :lisp
+       :copy-file
+       :featurep
+       )
+      (:import-from :xl-open-uri.protocols
+       :add-protocol-handler
+       :parse-media-type
+       :split-token
+       )
       )))
-(ansify::install :xl-open-uri.provider.http)
+(ansify::install :xl-open-uri.protocols.http)
 
-(in-package :xl-open-uri.provider.http)
+(in-package :xl-open-uri.protocols.http)
+
+(add-protocol-handler :http :xl-open-uri.protocols.http)
+(add-protocol-handler :https :xl-open-uri.protocols.https)
 
 (defvar *default-content-type* "application/octet-stream")
 (defvar *default-text-charset* "iso-8859-1")
 (defvar *read-wait-interval* 0.2)
 
 (defun open-uri (uri &key
-                     method headers query body encoding
+                     method headers query body
+                     encoding (response-encoding t)
                      auth proxy-auth
                      (proxy *http-proxy*)
                      no-redirect)
@@ -60,7 +73,7 @@
                (while (and (not chunks)
                            (not error)
                            (not (completed-p)))
-                 (http-response-wait client :timeout *read-wait-interval* :abort-on-quit nil))
+                 (sit-for *read-wait-interval*))
                (when error
                  (error error))
                (when chunks
@@ -86,64 +99,51 @@
                                  :receiver (http-general-receiver
                                             #'(lambda (chunk)
                                                 (when chunk
-                                                  (push chunk chunks))))
+                                                  (push chunk chunks)))
+                                            :line t :encoding response-encoding)
                                  :onerror #'(lambda (err)
                                               (setf error err))
                                  ))
-      (values #'reader #'closer #'listener client)
+      (values (make-general-input-stream #'reader #'closer #'listener)
+              client)
       )))
 
-(defun meta (client &optional key)
+
+(defun meta (stream client &optional key)
   (if key
       (http-response-header client key)
     (http-response-header-alist client)))
 
-(defun status (client)
+(defun status (stream client)
   (values (http-response-status client)
           (http-response-status-text client)))
 
-(defun base-uri (client)
+(defun base-uri (stream client)
   (http-request-uri client))
 
-(defun content-encoding (client)
-  (let ((v (http-response-header client :content-encoding)))
-    (when v
-      (mapcar #'normalize (split-string v #\,)))))
+(defun content-encoding (stream client)
+  (split-token (http-response-header client :content-encoding)))
 
-(defun content-type (client)
-  (nth-value 0 (http-content-type client)))
+(defun content-type (stream client)
+  (nth-value 0 (http-media-type client)))
 
-(defun charset (client)
-  (multiple-value-bind (type charset)
-      (http-content-type client)
+(defun charset (stream client)
+  (multiple-value-bind (type charset encoding)
+      (http-media-type client)
     (or charset
         (when (and type (string-match "^text/" type))
           *default-text-charset*))))
 
-(defun last-modified (client)
-  (let ((date (http-response-header client :last-modified)))
-    (when date
-      (http-date-to-universal-time date))))
+(defun last-modified (stream client)
+  (when-let (date (http-response-header client :last-modified))
+    (http-date-to-universal-time date)))
 
 
-(defun http-content-type (client)
-  (parse-content-type
+(defun http-media-type (stream client)
+  (parse-media-type
    (http-response-header client :content-type)))
 
-(defun parse-content-type (content-type)
-  (when (and content-type
-             (string-matchp "\\`\\(.+?\\)\\(?:; *charset=\"?\\([^ ;\"]+\\)\"?\\)?\\'"
-                            content-type))
-    (let ((type (match-string 1))
-          (charset (match-string 2)))
-      (values (normalize type)
-              (normalize charset)))))
 
-(defun normalize (s)
-  (when s
-    (string-downcase (http-client.base::strip s))))
-
-
-(provide "xl-open-uri/provider/http")
+(provide "xl-open-uri/protocols/http")
 
 ;;; End

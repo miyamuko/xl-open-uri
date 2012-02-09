@@ -23,13 +23,25 @@
 
 ;;; Code:
 
-(in-package :user)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (require "ansify")
+  (require "xl-alexandria")
 
-(require "xl-open-uri/core")
-(require "xl-open-uri/api")
-(require "xl-open-uri/extensions")
-(require "xl-open-uri/protocols")
+  (unless (find-package :xl-open-uri.core)
+    (defpackage :xl-open-uri.core
+      (:nicknames :open-uri.core)
+      (:use
+       :lisp
+       :editor
+       :alexandria
+       )
+      (:shadowing-import-from :lisp
+       :copy-file
+       :featurep
+       )
+      )))
+(ansify::install :xl-open-uri.core)
 
-(provide "xl-open-uri")
+(provide "xl-open-uri/core/package")
 
 ;;; End

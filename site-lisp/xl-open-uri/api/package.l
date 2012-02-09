@@ -25,17 +25,25 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require "ansify")
+  (require "xl-alexandria")
+  (require "xl-open-uri/core")
 
   (unless (find-package :xl-open-uri)
     (defpackage :xl-open-uri
-      (:nicknames :open-uri)
+      (:nicknames :xl-open-uri.api :open-uri.api :open-uri)
       (:use
        :lisp
        :editor
+       :alexandria
+       :xl-open-uri.core
+       )
+      (:shadowing-import-from :lisp
+       :copy-file
+       :featurep
        )
       )))
 (ansify::install :xl-open-uri)
 
-(provide "xl-open-uri/package")
+(provide "xl-open-uri/api/package")
 
 ;;; End

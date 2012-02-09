@@ -1,4 +1,4 @@
-; -*- mode: lisp; package: xl-open-uri; encoding: shift_jis -*-
+; -*- mode: lisp; package: xl-open-uri.core; encoding: shift_jis -*-
 
 ;; Copyright (c) 2012 MIYAMUKO Katsuyuki.
 ;;
@@ -24,51 +24,48 @@
 ;;; Code:
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (require "xl-open-uri/package")
+  (require "xl-open-uri/core/package")
+  (require "xl-open-uri/core/types")
   )
 
-(in-package :xl-open-uri)
+(in-package :xl-open-uri.core)
 
-(defvar *stream-meta* (make-hash-table))
+(export '(register-context
+          unregister-context
+          dispatch-generic-function
+          define-context-accessor
+          ))
 
-(defun register-meta (stream package meta)
-  (setf (gethash stream *stream-meta*)
-        (list package meta)))
+(defvar *stream-context* (make-hash-table))
 
-(defun unregister-meta (stream)
-  (remhash stream *stream-meta*))
+(defun register-context (stream package context)
+  (setf (gethash stream *stream-context*)
+        (list package context)))
 
-(defun get-meta (stream)
+(defun unregister-context (stream)
+  (remhash stream *stream-context*))
+
+(defun get-context (stream)
   (values-list
-   (gethash stream *stream-meta*)))
+   (gethash stream *stream-context*)))
 
 
-(defun dispatch-meta-accessor (stream type &rest options)
-  (multiple-value-bind (package meta)
-      (get-meta stream)
-    (when (and package meta)
-      (let ((fn (intern (string type) package)))
+(defun dispatch-generic-function (stream sym &rest options)
+  (multiple-value-bind (package context)
+      (get-context stream)
+    (when (and package context)
+      (let ((fn (intern (string sym) package)))
         (when (fboundp fn)
-          (apply fn meta options))))))
+          (apply fn stream context options))))))
 
-(defmacro define-meta-accessor (type)
+(defmacro define-context-accessor (sym)
   `(progn
-     (defun ,type (stream)
-       (dispatch-meta-accessor stream ',type))
-     (export ',type)))
-
-(define-meta-accessor status)
-(define-meta-accessor base-uri)
-(define-meta-accessor content-type)
-(define-meta-accessor content-encoding)
-(define-meta-accessor charset)
-(define-meta-accessor last-modified)
-
-(defun meta (stream &optional key)
-  (dispatch-meta-accessor stream 'meta key))
-(export 'meta)
+     (defun ,sym (stream)
+       (check-type stream open-stream)
+       (dispatch-generic-function stream ',sym))
+     (export ',sym)))
 
 
-(provide "xl-open-uri/meta")
+(provide "xl-open-uri/core/context")
 
 ;;; End

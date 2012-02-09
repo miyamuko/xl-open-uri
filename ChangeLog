@@ -1,3 +1,11 @@
+2012-02-10  MIYAMUKO Katsuyuki
+
+	* data をサポート
+
+	* プロトコルハンドラを追加するための API を追加
+
+	* リファクタリング
+
 2012-02-09  MIYAMUKO Katsuyuki
 
 	* http, https をサポート

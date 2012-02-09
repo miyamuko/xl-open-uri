@@ -1,4 +1,4 @@
-; -*- mode: lisp; package: xl-open-uri.core-extensions; encoding: shift_jis -*-
+; -*- mode: lisp; package: xl-open-uri.extensions; encoding: shift_jis -*-
 
 ;; Copyright (c) 2012 MIYAMUKO Katsuyuki.
 ;;
@@ -26,22 +26,26 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require "xl-open-uri/api")
 
-  (unless (find-package :xl-open-uri.core-extensions)
-    (defpackage :xl-open-uri.core-extensions
-      (:nicknames :open-uri.ext :xl-open-uri.ext :open-uri.core-extensions)
+  (unless (find-package :xl-open-uri.extensions)
+    (defpackage :xl-open-uri.extensions
+      (:nicknames :open-uri.ext :xl-open-uri.ext :open-uri.extensions)
       (:use
        :lisp
-       :xl-open-uri
+       :xl-open-uri.api
        )
       )))
 
-(in-package :xl-open-uri.core-extensions)
+(in-package :xl-open-uri.extensions)
 
 (shadow '(open
+          close
+          with-open-stream
           with-open-file
           ))
 
 (export '(open
+          close
+          with-open-stream
           with-open-file
           install
           uninstall
@@ -50,14 +54,29 @@
 (defun open (uri &rest options)
   (apply 'open-uri uri options))
 
-(defmacro with-open-file ((stream filename &rest options) &body body)
-  `(with-open-stream (,stream (open ,filename ,@options))
+(defun close (stream &key abort)
+  (close-uri stream :abort abort))
+
+(defmacro with-open-stream ((var stream) &body body)
+  (multiple-value-bind (decl body)
+      (lisp::find-declaration body)
+    `(let ((,var ,stream))
+       ,@decl
+       (unwind-protect
+           (multiple-value-prog1
+            (progn ,@body)
+            (and ,var (close-uri ,var)))
+         (and ,var (close-uri ,var :abort t))))))
+(setf (get 'with-open-stream 'ed:lisp-indent-hook) 1)
+
+(defmacro with-open-file ((stream uri &rest options) &body body)
+  `(with-open-stream (,stream (open ,uri ,@options))
      ,@body))
 (setf (get 'with-open-file 'ed:lisp-indent-hook) 1)
 
 
 (defun install (&optional (package *package*))
-  (import-extensions :import-from :xl-open-uri.core-extensions
+  (import-extensions :import-from :xl-open-uri.extensions
                      :package package))
 
 (defun uninstall (&optional (package *package*))
@@ -65,10 +84,10 @@
                      :package package))
 
 (defun import-extensions (&key import-from package)
-  (dolist (sym '(open with-open-file))
+  (dolist (sym (package-shadowing-symbols :open-uri.ext))
     (shadowing-import (intern (string sym) import-from) package)))
 
 
-(provide "xl-open-uri/core-extensions")
+(provide "xl-open-uri/extensions")
 
 ;;; End

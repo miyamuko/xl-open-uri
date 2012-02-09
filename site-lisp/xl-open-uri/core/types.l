@@ -1,4 +1,4 @@
-; -*- mode: lisp; package: xl-open-uri.provider.https; encoding: shift_jis -*-
+; -*- mode: lisp; package: xl-open-uri.core; encoding: shift_jis -*-
 
 ;; Copyright (c) 2012 MIYAMUKO Katsuyuki.
 ;;
@@ -24,9 +24,38 @@
 ;;; Code:
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (require "xl-open-uri/http/http")
+  (require "xl-open-uri/core/package")
   )
 
-(provide "xl-open-uri/provider/https")
+(in-package :xl-open-uri.core)
+
+(export '(input-stream
+          open-stream
+          open-input-stream
+          open-output-stream
+          ))
+
+(deftype open-stream ()
+  `(and stream
+        (satisfies open-stream-p)))
+
+(deftype input-stream ()
+  `(and stream
+        (satisfies input-stream-p)))
+
+(deftype output-stream ()
+  `(and stream
+        (satisfies output-stream-p)))
+
+(deftype open-input-stream ()
+  `(and open-stream
+        input-stream))
+
+(deftype open-output-stream ()
+  `(and open-stream
+        output-stream))
+
+
+(provide "xl-open-uri/core/types")
 
 ;;; End

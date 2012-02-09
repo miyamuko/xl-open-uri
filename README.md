@@ -58,6 +58,17 @@ user> (with-open-file (f "http://www.jsdlab.co.jp/~kamei/cgi-bin/download.cgi"
 3 ;
 nil ;
 -9
+
+;; data URL の読み込み
+user> (open-uri:with-open-uri (s "data:text/plain; charset=utf-8,xyzzy%20%E8%AA%AD%E3%81%BF%E6%96%B9")
+        (values (open-uri:base-uri s)
+                (open-uri:content-type s)
+                (open-uri:charset s)
+                (open-uri:read-to-end s)))
+"data:text/plain; charset=utf-8,xyzzy%20%E8%AA%AD%E3%81%BF%E6%96%B9" ;
+"text/plain" ;
+"utf-8" ;
+"xyzzy 読み方"
 ```
 
 

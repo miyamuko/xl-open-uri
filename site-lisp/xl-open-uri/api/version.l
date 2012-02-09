@@ -24,7 +24,7 @@
 ;;; Code:
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (require "xl-open-uri/package")
+  (require "xl-open-uri/api/package")
   )
 
 (in-package :xl-open-uri)
@@ -38,6 +38,6 @@
   +xl-open-uri-version+)
 
 
-(provide "xl-open-uri/version")
+(provide "xl-open-uri/api/version")
 
 ;;; End
