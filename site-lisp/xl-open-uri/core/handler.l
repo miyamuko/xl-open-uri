@@ -40,7 +40,8 @@
 
 (defun open-uri-internal (uri &rest options)
   (check-type uri string)
-  (cond ((string-match "\\`\\([a-z]+\\):" uri)
+  ;; ドライブレターと混同しないようにスキームは 2 文字以上にする
+  (cond ((string-match "\\`\\([a-z]\\{2,\\}\\):/\\{0,2\\}" uri)
          (let ((scheme (coerce-scheme-keyword (match-string 1))))
            (case scheme
              (:file
@@ -57,8 +58,9 @@
          (fn (find-open-function pkg)))
     (multiple-value-bind (stream context)
         (apply fn uri options)
-      (register-context stream pkg context)
-      (start-cleanup-later #'close-uri-internal)
+      (when context
+        (register-context stream pkg context)
+        (start-cleanup-later #'close-uri-internal))
       stream)))
 
 
@@ -80,7 +82,7 @@
   (let* ((module (format nil "xl-open-uri/protocols/~A" scheme))
          (pkgname (substitute #\. #\/ module)))
     (unless (find-load-path module)
-      (error "~A not supported: ~A" scheme))
+      (error "サポートしてない URL スキームです: ~A" scheme))
     (require module)
     (package-name (lisp::coerce-to-package pkgname))))
 
@@ -91,7 +93,7 @@
   (if-let (exist (find scheme *protocol-handler-alist*
                        :key #'car))
       (unless (eql (cdr exist) package)
-        (warn "Override protocol handler: ~A => ~A" (cdr exist) package)
+        (warn "プロトコルハンドラを上書きしました: ~A: ~A => ~A" scheme (cdr exist) package)
         (setf (cdr exist) package))
     (push (cons scheme package) *protocol-handler-alist*))
   *protocol-handler-alist*)

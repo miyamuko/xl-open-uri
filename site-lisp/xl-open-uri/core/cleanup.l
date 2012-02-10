@@ -49,13 +49,12 @@
 (defun start-cleanup-later (callback &optional (interval *cleanup-interval*))
   (unless *cleanup-waiting*
     (setf *cleanup-waiting* t)
-    (start-timer interval (curry #'on-cleanup callback) t)))
-
-(defun on-cleanup (callback)
-  (setf *cleanup-waiting* nil)
-  (do-cleanup callback)
-  (when (< 0 (hash-table-count *stream-context*))
-    (start-cleanup-later callback)))
+    (start-timer interval #'(lambda ()
+                              (setf *cleanup-waiting* nil)
+                              (do-cleanup callback)
+                              (when (< 0 (hash-table-count *stream-context*))
+                                (start-cleanup-later callback interval)))
+                 t)))
 
 (defun do-cleanup (callback)
   (let (garbages)

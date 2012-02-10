@@ -64,7 +64,7 @@ user> (open-uri:with-open-uri (s "data:text/plain; charset=utf-8,xyzzy%20%E8%AA%
         (values (open-uri:base-uri s)
                 (open-uri:content-type s)
                 (open-uri:charset s)
-                (open-uri:read-to-end s)))
+                (open-uri:read-all s)))
 "data:text/plain; charset=utf-8,xyzzy%20%E8%AA%AD%E3%81%BF%E6%96%B9" ;
 "text/plain" ;
 "utf-8" ;

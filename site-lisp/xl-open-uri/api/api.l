@@ -32,7 +32,9 @@
 (export '(with-open-uri
           open-uri
           close-uri
-          read-to-end
+          read-all
+          read-block
+          read-partial
           meta
           ))
 
@@ -55,12 +57,41 @@
   (funcall 'open-uri.core:close-uri-internal stream :abort abort))
 
 
-(defun read-to-end (stream &optional encoding)
+(defun read-all (stream &optional encoding (eof-error-p t) eof-value)
   (check-type stream open-input-stream)
-  (if encoding
-      (convert-encoding-to-internal encoding stream)
-    (with-output-to-string (os)
-      (copy-stream stream os))))
+  (cond ((eq eof-value (peek-char nil stream eof-error-p eof-value))
+         eof-value)
+        (encoding
+         (convert-encoding-to-internal encoding stream))
+        (t
+         (with-output-to-string (os)
+           (copy-stream stream os)))))
+
+(defun read-block (stream max-length &optional (eof-error-p t) eof-value buffer)
+  (check-type stream open-input-stream)
+  (when (<= max-length 0)
+    (return-from read-block ""))
+  (unless buffer
+    (setf buffer (make-vector max-length :element-type 'character :fill-pointer 0)))
+  (read-into buffer stream eof-error-p eof-value))
+
+(defun read-partial (stream max-length &optional (eof-error-p t) eof-value)
+  (check-type stream open-input-stream)
+  (when (<= max-length 0)
+    (return-from read-partial ""))
+  (cond ((eq eof-value (peek-char nil stream eof-error-p eof-value))
+         eof-value)
+        (t
+         (with-output-to-string (out)
+           (do ((c (read-char stream eof-error-p eof-value)
+                   (read-char-no-hang stream nil nil))
+                (n 1 (1+ n)))
+               ((or (eq c nil)
+                    (eq c eof-value)))
+             (write-char c out)
+             (when (<= max-length n)
+               (return))
+             )))))
 
 
 (defun meta (stream &optional key)

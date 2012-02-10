@@ -1,4 +1,4 @@
-; -*- mode: lisp; package: xl-open-uri.core; encoding: shift_jis -*-
+; -*- mode: lisp; package: xl-open-uri.test.protocols.http.get; encoding: shift_jis -*-
 
 ;; Copyright (c) 2012 MIYAMUKO Katsuyuki.
 ;;
@@ -23,40 +23,45 @@
 
 ;;; Code:
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (require "xl-open-uri/core/package")
+(require "lisp-unit")
+
+(require "json")
+(require "xl-open-uri")
+(require "xl-open-uri/test/helper")
+
+(defpackage :xl-open-uri.test.protocols.http.get
+  (:use :lisp :editor
+   :lisp-unit
+   :json
+   :xl-open-uri
+   :xl-open-uri.test.helper
+   )
   )
 
-(in-package :xl-open-uri.core)
+(in-package :xl-open-uri.test.protocols.http.get)
 
-(export '(open-stream
-          input-stream
-          output-stream
-          open-input-stream
-          open-output-stream
-          ))
+(remove-all-tests :xl-open-uri.test.protocols.http.get)
 
-(deftype open-stream ()
-  `(and stream
-        (satisfies open-stream-p)))
+(define-test http-user-agent/get
+  (multiple-value-bind (body status headers uri)
+      (let ((*http-user-agent* "hoge"))
+        (http-response-values
+         (http-get "http://localhost:3000/snoop")))
+    (let ((json (json-decode body)))
+      (assert-equal "hoge"
+          ($ json "headers" "user-agent"))
+      )
+    )
+  )
 
-(deftype input-stream ()
-  `(and stream
-        (satisfies input-stream-p)))
-
-(deftype output-stream ()
-  `(and stream
-        (satisfies output-stream-p)))
-
-(deftype open-input-stream ()
-  `(and open-stream
-        input-stream))
-
-(deftype open-output-stream ()
-  `(and open-stream
-        output-stream))
-
-
-(provide "xl-open-uri/core/types")
-
-;;; End
+(define-test http-user-agent/post
+  (multiple-value-bind (body status headers uri)
+      (http-response-values
+       (http-post "http://localhost:3000/snoop" nil
+                  :headers `(:User-Agent "fuga")))
+    (let ((json (json-decode body)))
+      (assert-equal "fuga"
+          ($ json "headers" "user-agent"))
+      )
+    )
+  )

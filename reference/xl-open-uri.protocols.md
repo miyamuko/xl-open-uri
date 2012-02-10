@@ -104,7 +104,7 @@ xl-open-uri に任意のプロトコルハンドラを追加するための機能を提供するパッケージで
 ```lisp
 user> (open-uri:with-open-uri (s "eval:(progn (princ \"Hello\") (values (+ 1 2) (* 3 4)))")
         (values (open-uri:base-uri s)
-                (open-uri:read-to-end s)))
+                (open-uri:read-all s)))
 "eval:(progn (princ \"Hello\") (values (+ 1 2) (* 3 4)))" ;
 "Hello
 3 ;
@@ -151,12 +151,33 @@ __See Also:__
   * [find-protocol-handler](#find-protocol-handler)
 
 
-### Function: <a name="parse-content-type"><em>parse-content-type</em></a> <i>`CONTENT-TYPE`</i>
+### Function: <a name="parse-media-type"><em>parse-media-type</em></a> <i>`CONTENT-TYPE`</i>
 
-TODO
+MIME タイプを解析して content-type, charset, encoding を多値で返します。
 
+```lisp
+xl-open-uri.protocols> (parse-media-type "text/html")
+"text/html" ;
+nil ;
+nil
 
-### Function: <a name="split-token"><em>split-token</em></a> <i>`HEADER` &optional (`SEPARATOR` ,)</i>
+xl-open-uri.protocols> (parse-media-type "text/html; charset=utf-8")
+"text/html" ;
+"utf-8" ;
+#.(make-utf8-encoding "utf8n" "Unicode (UTF-8N)" :signature nil :windows t :byte-order nil :cjk :jp)
 
-TODO
+xl-open-uri.protocols> (parse-media-type "text/html; charset=hoge")
+"text/html" ;
+"hoge" ;
+nil
+```
 
+### Function: <a name="split-token"><em>split-token</em></a> <i>`HEADER` &optional (`SEPARATOR` #\\,)</i>
+
+文字列を指定されたセパレータで分割します。
+セパレータのデフォルト値はカンマです。
+
+```lisp
+xl-open-uri.protocols> (split-token "gzip, deflate")
+("gzip" "deflate")
+```

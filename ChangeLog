@@ -1,5 +1,9 @@
 2012-02-10  MIYAMUKO Katsuyuki
 
+	* テストを追加: 
+
+	* read-all, read-partial, read-block を追加
+
 	* data をサポート
 
 	* プロトコルハンドラを追加するための API を追加

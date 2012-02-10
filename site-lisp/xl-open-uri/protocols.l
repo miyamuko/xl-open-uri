@@ -59,11 +59,12 @@
   (when (and media-type
              (string-matchp "\\`\\(.+?\\)\\(?:; *charset=\"?\\([^ ;\"]+\\)\"?\\)?\\'"
                             media-type))
-    (let ((content-type (normalize (match-string 1)))
-          (charset (normalize (match-string 2))))
-      (values content-type
-              charset
-              (gethash charset *mime-charset-name-hash-table*)))))
+    (let* ((content-type (normalize (match-string 1)))
+           (charset (normalize (match-string 2)))
+           (encoding (gethash charset *mime-charset-name-hash-table*)))
+      (when (eq encoding *encoding-utf8*)
+        (setf encoding *encoding-utf8n*))
+      (values content-type charset encoding))))
 
 (defun split-token (header &optional (separator #\,))
   (when header

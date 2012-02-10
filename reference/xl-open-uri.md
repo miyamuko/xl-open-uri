@@ -7,7 +7,9 @@
   * [FUNCTIONS](#functions)
     * [open-uri](#open-uri)
     * [close-uri](#close-uri)
-    * [read-to-end](#read-to-end)
+    * [read-all](#read-all)
+    * [read-block](#read-block)
+    * [read-partial](#read-partial)
     * [base-uri](#base-uri)
     * [charset](#charset)
     * [content-encoding](#content-encoding)
@@ -38,7 +40,7 @@ xl-open-uri の API を定義するパッケージです。
 
 ### Macro: <a name="with-open-uri"><em>with-open-uri</em></a> <i>(`STREAM` `URI` &rest `OPTIONS`) &body `BODY`</i>
 
-指定された `URI` からストリームを作成し、本体を評価します。
+指定した `URI` からストリームを作成し、本体を評価します。
 
   * `STREAM`    : ストリームに束縛される変数
   * `URI`       : ストリームを作成する URL
@@ -75,15 +77,15 @@ __See Also:__
 ## <a name="functions">FUNCTIONS</a>
 
 
-### Function: <a name="open-uri"><em>open-uri</em></a> <i>`URI` &key `:method` `:headers` `:query` `:body` `:encoding` `:response-encoding` `:auth` `:proxy-auth` (`:proxy` \*http-proxy\*) `:no-redirect`</i>
+### Function: <a name="open-uri"><em>open-uri</em></a> <i>`URI` &key `:method` `:headers` `:query` `:body` `:encoding` `:response-encoding` `:auth` `:proxy-auth` (`:proxy` \*http-proxy\*) `:no-redirect` `:onprogress`</i>
 
-指定された `URI` からストリームを作成します。
+指定した `URI` からストリームを作成します。
 
   * `:response-encoding` 以外の引数
 
     [http-request] に渡せるものと同じです。
 
-    なお、 `:receiver`, `:wait`, `:onprogress`, `:oncomplete`, `:onabort`, `:onerror`
+    なお、 `:receiver`, `:wait`, `:oncomplete`, `:onabort`, `:onerror`
     については指定できません。
 
   * `:response-encoding`
@@ -103,7 +105,7 @@ __See Also:__
 
 ### Function: <a name="close-uri"><em>close-uri</em></a> <i>`STREAM` &key `:abort`</i>
 
-指定されたストリームを閉じます。
+指定したストリームを閉じます。
 open-uri でオープしたストリームは、通常の close ではなくこの関数で閉じてください。
 
 __See Also:__
@@ -111,9 +113,53 @@ __See Also:__
   * [open-uri](#open-uri)
 
 
-### Function: <a name="read-to-end"><em>read-to-end</em></a> <i>`STREAM` &optional `ENCODING`</i>
+### Function: <a name="read-all"><em>read-all</em></a> <i>`STREAM` &optional `ENCODING` (`EOF-ERROR-P` t) `EOF-VALUE`</i>
 
-TODO
+指定したストリームから EOF までのすべてのデータを読み込んで文字列で返します。
+
+  * `ENCODING` を指定した場合、読み込んだ文字列を指定したエンコーディングに変換します。
+  * `EOF-ERROR-P` に `non-nil` を指定した場合、入力ストリームが終端に達しているとエラーを通知します。
+  * `EOF-VALUE` には入力ストリームが最初から終端に達していた場合の戻り値を指定します。
+
+__See Also:__
+
+  * [read-block](#read-block)
+  * [read-partial](#read-partial)
+
+
+### Function: <a name="read-block"><em>read-block</em></a> <i>`STREAM` `MAX-LENGTH` &optional (`EOF-ERROR-P` t) `EOF-VALUE` `BUFFER`</i>
+
+指定したストリームから `MAX-LENGTH` 文字のデータを読み込んで文字列で返します。
+EOF を読まない限り、`MAX-LENGTH` のデータを読むまで待ちます。
+
+  * `STREAM` に十分なデータが無い場合、 返される文字列は `MAX-LENGTH` より短いかもしれません。
+  * `MAX-LENGTH` が 0 の場合は、常に空文字列が返されます。
+  * `EOF-ERROR-P` に `non-nil` を指定した場合、入力ストリームが終端に達しているとエラーを通知します。
+  * `EOF-VALUE` には入力ストリームが最初から終端に達していた場合の戻り値を指定します。
+  * `BUFFER` には文字列を読み込むバッファを指定します。
+    * 何も指定しなかった場合は毎回バッファを確保します。
+    * `BUFFER` のサイズより `MAX-LENGTH` が大きい場合はエラーが発生します。
+
+__See Also:__
+
+  * [read-all](#read-all)
+  * [read-partial](#read-partial)
+
+
+### Function: <a name="read-partial"><em>read-partial</em></a> <i>`STREAM` `MAX-LENGTH` &optional (`EOF-ERROR-P` t) `EOF-VALUE`</i>
+
+指定したストリームから `MAX-LENGTH` 文字のデータを読み込んで文字列で返します。
+EOF が読まれなくても、すぐに読めるデータが `MAX-LENGTH` よりも少ない場合はそのデータだけを返します。
+
+  * `STREAM` に十分なデータが無い場合、 返される文字列は `MAX-LENGTH` より短いかもしれません。
+  * `MAX-LENGTH` が 0 の場合は、常に空文字列が返されます。
+  * `EOF-ERROR-P` に `non-nil` を指定した場合、入力ストリームが終端に達しているとエラーを通知します。
+  * `EOF-VALUE` には入力ストリームが最初から終端に達していた場合の戻り値を指定します。
+
+__See Also:__
+
+  * [read-all](#read-all)
+  * [read-block](#read-block)
 
 
 ### Function: <a name="base-uri"><em>base-uri</em></a> <i>`STREAM`</i>

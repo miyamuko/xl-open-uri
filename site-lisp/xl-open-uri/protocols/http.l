@@ -64,7 +64,8 @@
                      encoding (response-encoding t)
                      auth proxy-auth
                      (proxy *http-proxy*)
-                     no-redirect)
+                     no-redirect
+                     onprogress)
   (let (client chunks error)
     (labels ((completed-p ()
                (or (not client)
@@ -103,6 +104,7 @@
                                             :line t :encoding response-encoding)
                                  :onerror #'(lambda (err)
                                               (setf error err))
+                                 :onprogress onprogress
                                  ))
       (values (make-general-input-stream #'reader #'closer #'listener)
               client)
