@@ -89,21 +89,6 @@
     )
   )
 
-(define-test http-get/progress
-  (let (request-progress-list
-        response-progress-list)
-    (with-open-uri (s "http://localhost:3000/snoop"
-                      :onprogress #'(lambda (p)
-                                      (if (http-progress-response-p p)
-                                          (push p response-progress-list)
-                                        (push p request-progress-list))))
-      (read-all s) ; wait for response
-      (assert-true (null request-progress-list))
-      (assert-true (every 'http-progress-p response-progress-list))
-      (assert-equal 100 (http-progress-percent (car response-progress-list)))
-      ))
-  )
-
 (define-test http-get/no-redirect
   (with-open-uri (s "http://localhost:3000/redirect?url=http://localhost:3000/snoop&status=301")
     (assert-equal (values 200 "OK")

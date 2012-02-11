@@ -92,22 +92,6 @@
     )
   )
 
-(define-test http-post/progress
-  (let (request-progress-list
-        response-progress-list)
-    (with-open-uri (s "http://localhost:3000/snoop"
-                      :method :post
-                      :onprogress #'(lambda (p)
-                                      (if (http-progress-response-p p)
-                                          (push p response-progress-list)
-                                        (push p request-progress-list))))
-      (read-all s) ; wait for response
-      (assert-true (null request-progress-list))
-      (assert-true (every 'http-progress-p response-progress-list))
-      (assert-equal 100 (http-progress-percent (car response-progress-list)))
-      ))
-  )
-
 (define-test http-post/no-redirect
   ;; POST はリダイレクト時に GET になる
   (with-open-uri (s "http://localhost:3000/redirect?url=http://localhost:3000/snoop&status=301"
@@ -155,24 +139,6 @@
       ))
   )
 
-(define-test http-post/urlencoded-progress
-  (let (request-progress-list
-        response-progress-list)
-    (with-open-uri (s "http://localhost:3000/snoop"
-                      :method :post
-                      :body '((name1 "hoge")
-                              (name2 "fuga"))
-                      :onprogress #'(lambda (p)
-                                      (if (http-progress-response-p p)
-                                          (push p response-progress-list)
-                                        (push p request-progress-list))))
-      (read-all s) ; wait for response
-      (assert-true (every 'http-progress-p request-progress-list))
-      (assert-true (every 'http-progress-p response-progress-list))
-      (assert-equal 100 (http-progress-percent (car request-progress-list)))
-      (assert-equal 100 (http-progress-percent (car response-progress-list)))
-      )))
-
 (define-test http-post/multipart
   (with-open-uri (s "http://localhost:3000/snoop"
                     :method :post
@@ -186,24 +152,6 @@
           ($ json "headers" "content-type"))
       ))
   )
-
-(define-test http-post/multipart-progress
-  (let (request-progress-list
-        response-progress-list)
-    (with-open-uri (s "http://localhost:3000/snoop"
-                      :method :post
-                      :body '((name1 :value "hoge")
-                              (name2 :value "fuga"))
-                      :onprogress #'(lambda (p)
-                                      (if (http-progress-response-p p)
-                                          (push p response-progress-list)
-                                        (push p request-progress-list))))
-      (read-all s) ; for for response
-      (assert-true (every 'http-progress-p request-progress-list))
-      (assert-true (every 'http-progress-p response-progress-list))
-      (assert-equal 100 (http-progress-percent (car request-progress-list)))
-      (assert-equal 100 (http-progress-percent (car response-progress-list)))
-      )))
 
 (define-test http-post/file-upload
   (with-open-uri (s "http://localhost:3000/snoop"
@@ -226,29 +174,5 @@
             (md5-file "test-file-crlf-sjis.bin")
             (md5-file path))
         (delete-file path))
-      ))
-  )
-
-(define-test http-post/file-upload-progress
-  (let (request-progress-list
-        response-progress-list)
-    (with-open-uri (s "http://localhost:3000/snoop"
-                      :method :post
-                      :body '((file1 :file "../api/api.lc"))
-                      :onprogress #'(lambda (p)
-                                      (if (http-progress-response-p p)
-                                          (push p response-progress-list)
-                                        (push p request-progress-list))))
-      (let ((json (json-decode (read-all s))))
-        (let ((path ($ json "files" "file1" "path")))
-          (assert-equal
-              (md5-file "../api/api.lc")
-              (md5-file path))
-          (delete-file path))
-        )
-      (assert-true (every 'http-progress-p request-progress-list))
-      (assert-true (every 'http-progress-p response-progress-list))
-      (assert-equal 100 (http-progress-percent (car request-progress-list)))
-      (assert-equal 100 (http-progress-percent (car response-progress-list)))
       ))
   )
