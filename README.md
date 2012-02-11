@@ -10,10 +10,8 @@
 user> (require "open-uri")
 t
 
-user> (with-open-stream (f (open-uri:open-uri "http://www.ruby-lang.org/"))
-        (loop
-          (format t "~A~%" (or (read-line f nil nil)
-                               (return)))))
+user> (open-uri:with-open-uri (f "http://www.ruby-lang.org/")
+        (format t "~A" (open-uri:read-all f)))
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
 ...
 nil
@@ -59,8 +57,17 @@ user> (with-open-file (f "http://www.jsdlab.co.jp/~kamei/cgi-bin/download.cgi"
 nil ;
 -9
 
+;; FTP の取得
+user> (with-open-file (f "ftp://ftp.gnu.org/gnu/clisp/clisp.png")
+        (values
+         (open-uri:read-block f 4)
+         (format-date-string "%Y/%m/%d %H:%M:%S"
+                             (open-uri:last-modified f))))
+"\x89PNG" ;
+"2001/12/18 05:59:49"
+
 ;; data URL の読み込み
-user> (open-uri:with-open-uri (s "data:text/plain; charset=utf-8,xyzzy%20%E8%AA%AD%E3%81%BF%E6%96%B9")
+user> (open-uri:with-open-uri (s "data:text/plain;charset=utf-8,xyzzy%20%E8%AA%AD%E3%81%BF%E6%96%B9")
         (values (open-uri:base-uri s)
                 (open-uri:content-type s)
                 (open-uri:charset s)
@@ -75,9 +82,7 @@ user> (open-uri:with-open-uri (s "data:text/plain; charset=utf-8,xyzzy%20%E8%AA%
 ## DESCRIPTION
 
 xl-open-uri は Ruby の [open-uri] を xyzzy Lisp に移植したライブラリです。
-HTTP/HTTPS に簡単にアクセスするための機能を提供します。
-
-なお、xl-open-uri は FTP はサポートしていません。
+HTTP/HTTPS/FTP に簡単にアクセスするための機能を提供します。
 
   [open-uri]: http://doc.ruby-lang.org/ja/1.9.3/library/open=2duri.html
 

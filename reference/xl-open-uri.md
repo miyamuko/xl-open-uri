@@ -77,23 +77,220 @@ __See Also:__
 ## <a name="functions">FUNCTIONS</a>
 
 
-### Function: <a name="open-uri"><em>open-uri</em></a> <i>`URI` &key `:method` `:headers` `:query` `:body` `:encoding` `:response-encoding` `:auth` `:proxy-auth` (`:proxy` \*http-proxy\*) `:no-redirect` `:onprogress`</i>
+### Function: <a name="open-uri"><em>open-uri</em></a> <i>`URI` &rest `OPTIONS`</i>
 
 指定した `URI` からストリームを作成します。
+指定できる引数は URL スキームによって変わります。
 
-  * `:response-encoding` 以外の引数
 
-    [http-request] に渡せるものと同じです。
+#### HTTP/HTTPS
 
-    なお、 `:receiver`, `:wait`, `:oncomplete`, `:onabort`, `:onerror`
-    については指定できません。
+以下のキーワード引数が指定できます。
 
+  * `:method`
+  * `:headers`
+  * `:query`
+  * `:body`
+  * `:encoding`
   * `:response-encoding`
+  * `:auth`
+  * `:proxy-auth`
+  * `:proxy`
+  * `:no-redirect`
 
-    [http-general-receiver] の `:encoding` 引数に指定されます。
+`:response-encoding` は [http-general-receiver] の `:encoding` 引数に指定されます。
+
+それ以外の引数は [http-request] に渡せるものと同じです。
+
+なお、 `:receiver`, `:wait`, `:oncomplete`, `:onprogress`, `:onabort`, `:onerror`
+については指定できません。
+
+```lisp
+;; GET リクエストの送信
+user> (open-uri:with-open-uri (f "http://www.ruby-lang.org/")
+        (format t "~A" (open-uri:read-all f)))
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+...
+nil
+
+;; メタ情報の取得
+user> (open-uri:with-open-uri (f "http://www.ruby-lang.org/"
+                                 :headers '(:Accept-Language "ja, en"))
+        (values (multiple-value-list (open-uri:status f))
+                (open-uri:meta f)
+                (open-uri:meta f :content-length)
+                (open-uri:base-uri f)
+                (open-uri:content-type f)
+                (open-uri:charset f)))
+(200 "OK") ;
+(("Connection" . "Keep-Alive") ("Date" . "Thu, 09 Feb 2012 12:42:18 GMT") ...) ;
+nil ;
+"http://www.ruby-lang.org/ja/" ;
+"text/html" ;
+"utf-8"
+
+;; HEAD リクエストの送信
+user> (open-uri:with-open-uri (f "http://www.jsdlab.co.jp/~kamei/cgi-bin/download.cgi"
+                                 :method "HEAD")
+        (decode-universal-time
+         (open-uri:last-modified f)))
+21 ;
+28 ;
+1 ;
+8 ;
+12 ;
+2005 ;
+3 ;
+nil ;
+-9
+```
 
   [http-request]: https://github.com/miyamuko/http-client/blob/master/reference/http-client.md#http-request
   [http-general-receiver]: https://github.com/miyamuko/http-client/blob/master/reference/http-client.md#http-general-receiver
+
+
+----
+
+#### FTP
+
+以下のキーワード引数が指定できます。
+
+  * `:direction`
+
+    `:input` または `:output` を指定します。
+
+    `:input` を指定した場合は FTP からダウンロードします。
+    `:output` を指定した場合は FTP にアップロードします。
+
+    デフォルトは `:input` です。
+
+  * `:encoding`
+
+    `:binary` または `:text` を指定します。
+
+    `:binary` を指定した場合はバイナリモードで転送します。
+    `:text` を指定した場合は ASCII モードで転送します。
+
+    デフォルトは `:binary` です。
+
+  * `:auth`
+
+    FTP の認証情報をユーザ名とパスワードのリストで指定します。
+
+    ```lisp
+    :auth '("anonymous" "anonymous@bar.com")
+    :auth '("user" "password")
+    ```
+
+    デフォルトは `'("anonymous" nil)` です。
+
+    ※ HTTP/HTTPS の場合と指定方法が違います。
+
+  * `:active-mode`
+
+    `non-nil` を指定した場合、FTP のパッシブモードを利用しません。
+
+    デフォルトは `nil` です。
+
+  * `:logger`
+
+    FTP コマンドの実行結果を記録する output-stream を指定します。
+    t を指定した場合は *standard-output* に出力します。
+    nil を指定した場合は何も出力しません。
+
+    ```lisp
+    :logger nil                                                ; ログを出力しない
+    :logger t                                                  ; *standard-output* に出力する
+    :logger *status-window*                                    ; メッセージウィンドウに出力する
+    :logger (make-buffer-stream (get-buffer-create "ftp-log")) ; バッファに出力する
+    ```
+
+    デフォルトは `nil` です。
+
+```lisp
+;; FTP upload
+user> (open-uri:with-open-uri (s "ftp://my.ftp-server.com/public_html/hello.txt"
+                                 :direction :output
+                                 :auth '("user" "password")
+                                 :encoding :text
+                                 :logger t)
+        (format s "Hello World~%"))
+R: 220 ProFTPD
+S: USER user
+R: 331 Password required for user
+S: PASS *****
+R: 230 User user logged in
+S: PASV
+R: 227 Entering Passive Mode (*****).
+S: STOR /public_html/hello.txt
+R: 150 Opening ASCII mode data connection for /public_html/hello.txt
+R: 226 Transfer complete
+S: QUIT
+R: 221 Goodbye.
+nil
+
+;; FTP download
+user> (open-uri:with-open-uri (s "ftp://my.ftp-server.com/public_html/hello.txt"
+                                 :direction :input
+                                 :auth '("user" "password")
+                                 :encoding :text
+                                 :logger t)
+        (values (open-uri:read-all s)
+          (format-date-string "%Y/%m/%d %H:%M:%S" (open-uri:last-modified s))))
+R: 220 ProFTPD
+S: USER user
+R: 331 Password required for user
+S: PASS *****
+R: 230 User user logged in
+S: MDTM /public_html/hello.txt
+R: 213 20120211033830
+S: PASV
+R: 227 Entering Passive Mode (*****).
+S: RETR /public_html/hello.txt
+R: 150 Opening ASCII mode data connection for /public_html/hello.txt (12 bytes)
+R: 226 Transfer complete
+S: QUIT
+R: 221 Goodbye.
+"Hello World
+"
+"2012/02/11 12:38:30"
+```
+
+
+----
+
+#### DATA
+
+引数は URI のみです。
+
+```lisp
+;; data URL の読み込み (url encode)
+user> (open-uri:with-open-uri (s "data:text/plain;charset=utf-8,xyzzy%20%E8%AA%AD%E3%81%BF%E6%96%B9")
+        (values (open-uri:base-uri s)
+                (open-uri:content-type s)
+                (open-uri:charset s)
+                (open-uri:read-all s)))
+"data:text/plain; charset=utf-8,xyzzy%20%E8%AA%AD%E3%81%BF%E6%96%B9" ;
+"text/plain" ;
+"utf-8" ;
+"xyzzy 読み方"
+
+;; data URL の読み込み (base64)
+user> (open-uri:with-open-uri (s (concat "data:image/gif;base64,R0lGODdhMAAwAPAAAAAAAP///ywAAAAAMAAw"
+                                         "AAAC8IyPqcvt3wCcDkiLc7C0qwyGHhSWpjQu5yqmCYsapyuvUUlvONmOZtfzgFz"
+                                         "ByTB10QgxOR0TqBQejhRNzOfkVJ+5YiUqrXF5Y5lKh/DeuNcP5yLWGsEbtLiOSp"
+                                         "a/TPg7JpJHxyendzWTBfX0cxOnKPjgBzi4diinWGdkF8kjdfnycQZXZeYGejmJl"
+                                         "ZeGl9i2icVqaNVailT6F5iJ90m6mvuTS4OK05M0vDk0Q4XUtwvKOzrcd3iq9uis"
+                                         "F81M1OIcR7lEewwcLp7tuNNkM3uNna3F2JQFo97Vriy/Xl4/f1cf5VWzXyym7PH"
+                                         "hhx4dbgYKAAA7"))
+        (values (open-uri:content-type s)
+                (open-uri:charset s)
+                (open-uri:read-block s 6)))
+"image/gif"
+nil
+"GIF87a"
+```
+
 
 __See Also:__
 
