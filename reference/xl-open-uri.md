@@ -83,7 +83,7 @@ __See Also:__
 指定できる引数は URL スキームによって変わります。
 
 
-#### HTTP/HTTPS
+#### <a name="open-uri-http">HTTP/HTTPS</a>
 
 以下のキーワード引数が指定できます。
 
@@ -151,25 +151,35 @@ nil ;
 
 ----
 
-#### FTP
+#### <a name="open-uri-ftp">FTP</a>
 
 以下のキーワード引数が指定できます。
 
   * `:direction`
 
-    `:input` または `:output` を指定します。
+    ストリームの入出力の方向を指定します。
 
-    `:input` を指定した場合は FTP からダウンロードします。
-    `:output` を指定した場合は FTP にアップロードします。
+    * `:input`: FTP からダウンロードします。
+    * `:output`: FTP にアップロードします。
 
     デフォルトは `:input` です。
+
+  * `:if-exists`
+
+    `:direction` が `:output` の時のファイルが存在する場合の動作を指定します。
+
+    * `:error`: エラーを出力します。
+    * `:append`: 既存ファイルに追加します (APPE コマンド)。
+    * `:overwrite`: 上書きします (STOR コマンド)。
+    * `:uniq`: 重複しないユニークなファイル名に変更します (STOU コマンド)。
+      変更後のファイル名は base-uri で取得します。
 
   * `:encoding`
 
     `:binary` または `:text` を指定します。
 
-    `:binary` を指定した場合はバイナリモードで転送します。
-    `:text` を指定した場合は ASCII モードで転送します。
+    * `:binary`: バイナリモードで転送します。
+    * `:text`: ASCII モードで転送します。
 
     デフォルトは `:binary` です。
 
@@ -222,6 +232,11 @@ S: PASS *****
 R: 230 User user logged in
 S: PASV
 R: 227 Entering Passive Mode (*****).
+S: NLST /public_html/
+R: 150 Opening ASCII mode data connection for file list
+R: 226 Transfer complete
+S: PASV
+R: 227 Entering Passive Mode (*****).
 S: STOR /public_html/hello.txt
 R: 150 Opening ASCII mode data connection for /public_html/hello.txt
 R: 226 Transfer complete
@@ -242,8 +257,13 @@ S: USER user
 R: 331 Password required for user
 S: PASS *****
 R: 230 User user logged in
+S: PASV
+R: 227 Entering Passive Mode (*****).
+S: NLST /public_html/
+R: 150 Opening ASCII mode data connection for file list
+R: 226 Transfer complete
 S: MDTM /public_html/hello.txt
-R: 213 20120211033830
+R: 213 20120211063509
 S: PASV
 R: 227 Entering Passive Mode (*****).
 S: RETR /public_html/hello.txt
@@ -259,7 +279,7 @@ R: 221 Goodbye.
 
 ----
 
-#### DATA
+#### <a name="open-uri-data">DATA</a>
 
 引数は URI のみです。
 
