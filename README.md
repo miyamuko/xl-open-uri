@@ -57,14 +57,24 @@ user> (with-open-file (f "http://www.jsdlab.co.jp/~kamei/cgi-bin/download.cgi"
 nil ;
 -9
 
-;; FTP の取得
-user> (with-open-file (f "ftp://ftp.gnu.org/gnu/clisp/clisp.png")
+;; FTP (ダウンロード)
+user> (open-uri:with-open-uri (f "ftp://ftp.gnu.org/gnu/clisp/clisp.png")
         (values
          (open-uri:read-block f 4)
          (format-date-string "%Y/%m/%d %H:%M:%S"
                              (open-uri:last-modified f))))
 "\x89PNG" ;
 "2001/12/18 05:59:49"
+
+;; FTP (アップロード)
+user> (open-uri:with-open-uri (os "ftp://example.com/public_html/hello.txt"
+                                  :direction :output
+                                  :if-exists :overwrite
+                                  :encoding :binary
+                                  :auth '("user" "pass"))
+        (with-open-file (is "hello.txt" :encoding :binary)
+          (alexandria:copy-stream is os)))
+13730
 
 ;; data URL の読み込み
 user> (open-uri:with-open-uri (s "data:text/plain;charset=utf-8,xyzzy%20%E8%AA%AD%E3%81%BF%E6%96%B9")
@@ -81,8 +91,15 @@ user> (open-uri:with-open-uri (s "data:text/plain;charset=utf-8,xyzzy%20%E8%AA%A
 
 ## DESCRIPTION
 
-xl-open-uri は Ruby の [open-uri] を xyzzy Lisp に移植したライブラリです。
-HTTP/HTTPS/FTP に簡単にアクセスするための機能を提供します。
+xl-open-uri は Ruby の [open-uri] とほぼ同様の機能を xyzzy Lisp に実装したライブラリです。
+HTTP や FTP に簡単にアクセスするための機能を提供します。
+
+デフォルトでサポートしている URL スキームは http, https, ftp, data です。
+また、URL スキームを追加するための API も公開しています。
+
+Ruby の open-uri では HTTP GET および FTP のダウンロードしか対応していませんが、
+xl-open-uri では任意の HTTP メソッドの送信が可能です。
+また FTP のアップロードにも対応しています。
 
   [open-uri]: http://doc.ruby-lang.org/ja/1.9.3/library/open=2duri.html
 
@@ -105,7 +122,7 @@ HTTP/HTTPS/FTP に簡単にアクセスするための機能を提供します�
 
 ## TODO
 
-* FTP サポート?
+なし。
 
 
 ## KNOWN BUGS

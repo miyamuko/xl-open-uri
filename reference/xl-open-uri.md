@@ -208,13 +208,14 @@ nil ;
 
   * `:if-exists`
 
-    `:direction` が `:output` の時のファイルが存在する場合の動作を指定します。
+    FTP アップロード時 (`:direction` が `:output`) にファイルが存在する場合の動作を指定します。
 
     * `:error`: エラーを出力します。
     * `:append`: 既存ファイルに追加します (APPE コマンド)。
     * `:overwrite`: 上書きします (STOR コマンド)。
     * `:uniq`: 重複しないユニークなファイル名に変更します (STOU コマンド)。
       変更後のファイル名は base-uri で取得します。
+      ※ FTP サーバによっては変更後の名前を取得できない場合があります。
 
   * `:encoding`
 
@@ -247,8 +248,11 @@ nil ;
   * `:logger`
 
     FTP コマンドの実行結果を記録する output-stream を指定します。
-    t を指定した場合は *standard-output* に出力します。
-    nil を指定した場合は何も出力しません。
+
+    * t を指定した場合は *standard-output* に出力します。
+    * `nil` を指定した場合は何も出力しません。
+
+    デフォルトは `nil` です。
 
     ```lisp
     :logger nil                                                ; ログを出力しない
@@ -256,8 +260,6 @@ nil ;
     :logger *status-window*                                    ; メッセージウィンドウに出力する
     :logger (make-buffer-stream (get-buffer-create "ftp-log")) ; バッファに出力する
     ```
-
-    デフォルトは `nil` です。
 
 ```lisp
 ;; FTP upload
