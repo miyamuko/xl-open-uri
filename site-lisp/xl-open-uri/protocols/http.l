@@ -28,7 +28,9 @@
   (require "http-client")
   (require "xl-alexandria")
   (require "xl-open-uri/protocols")
+  )
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package :xl-open-uri.protocols.http)
     (defpackage :xl-open-uri.protocols.http
       (:nicknames :xl-open-uri.protocols.https)
@@ -47,8 +49,8 @@
        :parse-media-type
        :split-token
        )
-      )))
-(ansify::install :xl-open-uri.protocols.http)
+      ))
+  (ansify::install :xl-open-uri.protocols.http))
 
 (in-package :xl-open-uri.protocols.http)
 

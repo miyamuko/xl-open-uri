@@ -23,8 +23,13 @@
 
 ;;; Code:
 
+;; wip/ftp は in-package をしていないので、読み込み時のパッケージに定義されるので、
+;; 必ず user パッケージで定義されるようにする。
+;; virtual-file-ftp も user に読まれていることを前提にしているので user にする。
+(in-package :user)
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (require "wip/ftp") ;; user package
+  (require "wip/ftp")
 
   (require "ansify")
   (require "xl-alexandria")
@@ -32,7 +37,9 @@
 
   (require "xl-open-uri/core")
   (require "xl-open-uri/protocols")
+  )
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package :xl-open-uri.protocols.ftp)
     (defpackage :xl-open-uri.protocols.ftp
       (:use
@@ -50,8 +57,8 @@
       (:import-from :xl-open-uri.core
        :open-output-stream
        )
-      )))
-(ansify::install :xl-open-uri.protocols.ftp)
+      ))
+  (ansify::install :xl-open-uri.protocols.ftp))
 
 (in-package :xl-open-uri.protocols.ftp)
 

@@ -25,7 +25,9 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require "ansify")
+  )
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package :xl-open-uri.protocols)
     (defpackage :xl-open-uri.protocols
       (:nicknames :open-uri.protocols)
@@ -33,8 +35,8 @@
        :lisp
        :editor
        )
-      )))
-(ansify::install :xl-open-uri.protocols)
+      ))
+  (ansify::install :xl-open-uri.protocols))
 
 (in-package :xl-open-uri.protocols)
 

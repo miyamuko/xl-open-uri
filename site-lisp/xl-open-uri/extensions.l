@@ -25,7 +25,9 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require "xl-open-uri/api")
+  )
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package :xl-open-uri.extensions)
     (defpackage :xl-open-uri.extensions
       (:nicknames :open-uri.ext :xl-open-uri.ext :open-uri.extensions)

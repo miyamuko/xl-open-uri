@@ -27,7 +27,9 @@
   (require "ansify")
   (require "xl-alexandria")
   (require "xl-open-uri/core")
+  )
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package :xl-open-uri)
     (defpackage :xl-open-uri
       (:nicknames :xl-open-uri.api :open-uri.api :open-uri)
@@ -41,8 +43,8 @@
        :copy-file
        :featurep
        )
-      )))
-(ansify::install :xl-open-uri)
+      ))
+  (ansify::install :xl-open-uri))
 
 (provide "xl-open-uri/api/package")
 

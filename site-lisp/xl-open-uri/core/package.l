@@ -26,7 +26,9 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require "ansify")
   (require "xl-alexandria")
+  )
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package :xl-open-uri.core)
     (defpackage :xl-open-uri.core
       (:nicknames :open-uri.core)
@@ -39,8 +41,8 @@
        :copy-file
        :featurep
        )
-      )))
-(ansify::install :xl-open-uri.core)
+      ))
+  (ansify::install :xl-open-uri.core))
 
 (provide "xl-open-uri/core/package")
 

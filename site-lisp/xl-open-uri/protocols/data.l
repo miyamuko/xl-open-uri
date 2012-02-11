@@ -26,7 +26,9 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require "ansify")
   (require "xl-open-uri/protocols")
+  )
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (find-package :xl-open-uri.protocols.data)
     (defpackage :xl-open-uri.protocols.data
       (:use
@@ -37,8 +39,8 @@
        :add-protocol-handler
        :parse-media-type
        )
-      )))
-(ansify::install :xl-open-uri.protocols.data)
+      ))
+  (ansify::install :xl-open-uri.protocols.data))
 
 (in-package :xl-open-uri.protocols.data)
 
