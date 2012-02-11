@@ -15,61 +15,61 @@
 
 ### Package: <a name="xl-open-uri.protocols"><em>xl-open-uri.protocols</em></a>
 
-xl-open-uri �ɔC�ӂ̃v���g�R���n���h����ǉ����邽�߂̋@�\��񋟂���p�b�P�[�W�ł��B
-�v���g�R���n���h���̊J���җp�̃p�b�P�[�W�ł��B
+xl-open-uri に任意のプロトコルハンドラを追加するための機能を提供するパッケージです。
+プロトコルハンドラの開発者用のパッケージです。
 
-�j�b�N�l�[���͈ȉ��̂Ƃ���ł��B
+ニックネームは以下のとおりです。
 
   * `open-uri.protocols`
 
-�v���g�R���n���h���͈ȉ��̊֐����`�����p�b�P�[�W�Ƃ��č쐬���܂��B
-`open-uri` �ȊO�͎����� optional �ł��B
-���ꂼ��ȉ��̂悤�Ɏ������Ă��������B
+プロトコルハンドラは以下の関数を定義したパッケージとして作成します。
+`open-uri` 以外は実装は optional です。
+それぞれ以下のように実装してください。
 
-  * `open-uri` `URI` &rest `OPTIONS` (�K�{)
+  * `open-uri` `URI` &rest `OPTIONS` (必須)
 
-    open-uri:open-uri �Ɏw�肵�����������̂܂܎w�肳��܂��B
-    �߂�l�� stream �� context �𑽒l�ŕԂ��܂��B
+    open-uri:open-uri に指定した引数がそのまま指定されます。
+    戻り値は stream と context を多値で返します。
 
-    context �͔C�ӂ̒l��Ԃ����Ƃ��ł��A�ȉ��̊֐��̈����Ɏw�肳��܂��B
+    context は任意の値を返すことができ、以下の関数の引数に指定されます。
 
   * `close-uri` `STREAM` `CONTEXT` &key `:abort`
 
-    open-uri:close-uri ���Ă΂ꂽ�Ƃ��ɌĂяo����܂��B
+    open-uri:close-uri が呼ばれたときに呼び出されます。
 
-    `STREAM` �� `close` ���ꂽ��ԂŌĂяo�����̂�
-    ���̑��̏I���������K�v�Ȃ�������Ă��������B
+    `STREAM` は `close` された状態で呼び出されるので
+    その他の終了処理が必要なら実装してください。
 
   * `meta` `STREAM` `CONTEXT` &optional `KEY`
 
-    open-uri:meta ���Ă΂ꂽ�Ƃ��ɌĂяo����܂��B
+    open-uri:meta が呼ばれたときに呼び出されます。
 
   * `status` `STREAM` `CONTEXT`
 
-    open-uri:status ���Ă΂ꂽ�Ƃ��ɌĂяo����܂��B
+    open-uri:status が呼ばれたときに呼び出されます。
 
   * `base-uri` `STREAM` `CONTEXT`
 
-    open-uri:base-uri ���Ă΂ꂽ�Ƃ��ɌĂяo����܂��B
+    open-uri:base-uri が呼ばれたときに呼び出されます。
 
   * `content-encoding` `STREAM` `CONTEXT`
 
-    open-uri:content-encoding ���Ă΂ꂽ�Ƃ��ɌĂяo����܂��B
+    open-uri:content-encoding が呼ばれたときに呼び出されます。
 
   * `content-type` `STREAM` `CONTEXT`
 
-    open-uri:content-type ���Ă΂ꂽ�Ƃ��ɌĂяo����܂��B
+    open-uri:content-type が呼ばれたときに呼び出されます。
 
   * `charset` `STREAM` `CONTEXT`
 
-    open-uri:charset ���Ă΂ꂽ�Ƃ��ɌĂяo����܂��B
+    open-uri:charset が呼ばれたときに呼び出されます。
 
   * `last-modified` `STREAM` `CONTEXT`
 
-    open-uri:last-modified ���Ă΂ꂽ�Ƃ��ɌĂяo����܂��B
+    open-uri:last-modified が呼ばれたときに呼び出されます。
 
 
-### ������
+### 実装例
 
 ```lisp
 (defpackage :eval-protocol-handler
@@ -99,7 +99,7 @@ xl-open-uri �ɔC�ӂ̃v���g�R���n���h����ǉ����邽�߂̋@�\��񋟂���p�b�P�[�W��
 (add-protocol-handler :eval :eval-protocol-handler)
 ```
 
-���s���ʂ͈ȉ��̂Ƃ���ł��B
+実行結果は以下のとおりです。
 
 ```lisp
 user> (open-uri:with-open-uri (s "eval:(progn (princ \"Hello\") (values (+ 1 2) (* 3 4)))")
@@ -118,8 +118,8 @@ user> (open-uri:with-open-uri (s "eval:(progn (princ \"Hello\") (values (+ 1 2) 
 
 ### Function: <a name="add-protocol-handler"><em>add-protocol-handler</em></a> <i>`SCHEME` `PACKAGE`</i>
 
-�w�肳�ꂽ URL �X�L�[�}�̃v���g�R���n���h����ݒ肵�܂��B
-���łɃv���g�R���n���h�����ݒ肳��Ă���ꍇ�͏㏑�����܂��B
+指定された URL スキーマのプロトコルハンドラを設定します。
+すでにプロトコルハンドラが設定されている場合は上書きします。
 
 __See Also:__
 
@@ -130,8 +130,8 @@ __See Also:__
 
 ### Function: <a name="find-protocol-handler"><em>find-protocol-handler</em></a> <i>`SCHEME`</i>
 
-�w�肳�ꂽ URL �X�L�[�}�̃v���g�R���n���h�����擾���܂��B
-�߂�l�̓p�b�P�[�W�ł��B
+指定された URL スキーマのプロトコルハンドラを取得します。
+戻り値はパッケージです。
 
 __See Also:__
 
@@ -142,7 +142,7 @@ __See Also:__
 
 ### Function: <a name="remove-protocol-handler"><em>remove-protocol-handler</em></a> <i>`SCHEME`</i>
 
-�w�肳�ꂽ URL �X�L�[�}�̃v���g�R���n���h�����폜���܂��B
+指定された URL スキーマのプロトコルハンドラを削除します。
 
 __See Also:__
 
@@ -153,7 +153,7 @@ __See Also:__
 
 ### Function: <a name="parse-media-type"><em>parse-media-type</em></a> <i>`CONTENT-TYPE`</i>
 
-MIME �^�C�v����͂��� content-type, charset, encoding �𑽒l�ŕԂ��܂��B
+MIME タイプを解析して content-type, charset, encoding を多値で返します。
 
 ```lisp
 xl-open-uri.protocols> (parse-media-type "text/html")
@@ -174,8 +174,8 @@ nil
 
 ### Function: <a name="split-token"><em>split-token</em></a> <i>`HEADER` &optional (`SEPARATOR` #\\,)</i>
 
-��������w�肳�ꂽ�Z�p���[�^�ŕ������܂��B
-�Z�p���[�^�̃f�t�H���g�l�̓J���}�ł��B
+文字列を指定されたセパレータで分割します。
+セパレータのデフォルト値はカンマです。
 
 ```lisp
 xl-open-uri.protocols> (split-token "gzip, deflate")
