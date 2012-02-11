@@ -67,9 +67,9 @@
 (defun close-uri-internal (stream &key abort)
   (unwind-protect
       (progn
+        (dispatch-generic-function stream 'close-uri :abort abort)
         (when (open-stream-p stream)
-          (close stream))
-        (dispatch-generic-function stream 'close-uri :abort abort))
+          (close stream)))
     (unregister-context stream)))
 
 
