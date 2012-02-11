@@ -1,7 +1,7 @@
 # xl-open-uri - open-uri for xyzzy Lisp.
 
 * Home URL: http://miyamuko.s56.xrea.com/xyzzy/xl-open-uri/intro.htm
-* Version: 0.0.1
+* Version: 1.0.0
 
 
 ## SYNOPSIS

@@ -573,5 +573,5 @@ xl-open-uri> (with-open-stream (s (open-uri:open-uri "http://www.google.co.jp/"
 
 ```lisp
 xl-open-uri> (xl-open-uri-version)
-"0.0.1"
+"1.0.0"
 ```

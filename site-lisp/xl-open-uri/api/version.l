@@ -32,7 +32,7 @@
 (export '(xl-open-uri-version
           ))
 
-(defconstant +xl-open-uri-version+ "0.0.1")
+(defconstant +xl-open-uri-version+ "1.0.0")
 
 (defun xl-open-uri-version ()
   +xl-open-uri-version+)
