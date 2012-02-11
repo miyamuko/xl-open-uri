@@ -112,6 +112,12 @@ user> (open-uri:with-open-uri (s "eval:(progn (princ \"Hello\") (values (+ 1 2) 
 ```
 
 
+__See Also:__
+
+  * xl-open-uri
+  * xl-open-uri.extensions
+
+
 ----
 
 ## <a name="functions">FUNCTIONS</a>

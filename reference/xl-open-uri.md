@@ -33,6 +33,11 @@ xl-open-uri の API を定義するパッケージです。
   * `xl-open-uri`
   * `open-uri`
 
+__See Also:__
+
+  * xl-open-uri.extensions
+  * xl-open-uri.protocols
+
 
 ----
 
@@ -70,6 +75,16 @@ __See Also:__
 
   * [open-uri](#open-uri)
   * [close-uri](#close-uri)
+  * [read-all](#read-all)
+  * [read-block](#read-block)
+  * [read-partial](#read-partial)
+  * [base-uri](#base-uri)
+  * [charset](#charset)
+  * [content-encoding](#content-encoding)
+  * [content-type](#content-type)
+  * [last-modified](#last-modified)
+  * [meta](#meta)
+  * [status](#status)
 
 
 ----
@@ -82,6 +97,32 @@ __See Also:__
 指定した `URI` からストリームを作成します。
 指定できる引数は URL スキームによって変わります。
 
+ストリームからは以下の関数でメタ情報を取得することができます。
+
+  * [base-uri](#base-uri)
+  * [charset](#charset)
+  * [content-encoding](#content-encoding)
+  * [content-type](#content-type)
+  * [last-modified](#last-modified)
+  * [meta](#meta)
+  * [status](#status)
+
+また、ストリームからデータを読み込むには以下の関数を利用します。
+
+  * [read-all](#read-all)
+  * [read-block](#read-block)
+  * [read-partial](#read-partial)
+  * peek-char
+  * read
+  * read-as-string
+  * read-char
+  * read-char-no-hang
+  * read-delimited-list
+  * read-into
+  * read-line
+  * read-line-into
+  * read-preserving-whitespace
+  * unread-char
 
 #### <a name="open-uri-http">HTTP/HTTPS</a>
 
@@ -104,6 +145,10 @@ __See Also:__
 
 なお、 `:receiver`, `:wait`, `:oncomplete`, `:onprogress`, `:onabort`, `:onerror`
 については指定できません。
+
+  [http-request]: https://github.com/miyamuko/http-client/blob/master/reference/http-client.md#http-request
+  [http-general-receiver]: https://github.com/miyamuko/http-client/blob/master/reference/http-client.md#http-general-receiver
+
 
 ```lisp
 ;; GET リクエストの送信
@@ -144,9 +189,6 @@ user> (open-uri:with-open-uri (f "http://www.jsdlab.co.jp/~kamei/cgi-bin/downloa
 nil ;
 -9
 ```
-
-  [http-request]: https://github.com/miyamuko/http-client/blob/master/reference/http-client.md#http-request
-  [http-general-receiver]: https://github.com/miyamuko/http-client/blob/master/reference/http-client.md#http-general-receiver
 
 
 ----
@@ -316,6 +358,16 @@ __See Also:__
 
   * [with-open-uri](#with-open-uri)
   * [close-uri](#close-uri)
+  * [read-all](#read-all)
+  * [read-block](#read-block)
+  * [read-partial](#read-partial)
+  * [base-uri](#base-uri)
+  * [charset](#charset)
+  * [content-encoding](#content-encoding)
+  * [content-type](#content-type)
+  * [last-modified](#last-modified)
+  * [meta](#meta)
+  * [status](#status)
   * with-open-stream
   * http-request
 
@@ -381,6 +433,8 @@ __See Also:__
 
 ### Function: <a name="base-uri"><em>base-uri</em></a> <i>`STREAM`</i>
 
+サポートする URL スキーム: すべて
+
 リソースの実際の URI を返します。
 リダイレクトされた場合は、リダイレクト後の URI を返します。
 
@@ -392,6 +446,8 @@ xl-open-uri> (with-open-stream (s (open-uri:open-uri "http://www.jsdlab.co.jp/~k
 
 
 ### Function: <a name="charset"><em>charset</em></a> <i>`STREAM`</i>
+
+サポートする URL スキーム: HTTP/HTTPS, DATA
 
 Content-Type ヘッダの charset を返します。
 文字列は小文字へと変換されています。
@@ -421,6 +477,8 @@ xl-open-uri> (with-open-stream (s (open-uri:open-uri "http://www.google.co.jp/")
 
 ### Function: <a name="content-encoding"><em>content-encoding</em></a> <i>`STREAM`</i>
 
+サポートする URL スキーム: HTTP/HTTPS
+
 対象となるリソースの Content-Encoding を文字列のリストとして返します。
 文字列は小文字へと変換されています。
 
@@ -435,6 +493,8 @@ xl-open-uri> (with-open-stream (s (open-uri:open-uri "http://www.yahoo.co.jp/"
 
 
 ### Function: <a name="content-type"><em>content-type</em></a> <i>`STREAM`</i>
+
+サポートする URL スキーム: HTTP/HTTPS, DATA
 
 対象となるリソースの Content-Type を文字列で返します。
 文字列は小文字へと変換されています。
@@ -458,6 +518,8 @@ xl-open-uri> (with-open-stream (s (open-uri:open-uri "http://www.google.co.jp/")
 
 ### Function: <a name="last-modified"><em>last-modified</em></a> <i>`STREAM`</i>
 
+サポートする URL スキーム: HTTP/HTTPS, FTP
+
 対象となる URI の最終更新時刻を universal-time で返します。
 Last-Modified ヘッダがない場合は `nil` を返します。
 
@@ -471,6 +533,8 @@ xl-open-uri> (with-open-stream (s (open-uri:open-uri "http://www.jsdlab.co.jp/~k
 
 
 ### Function: <a name="meta"><em>meta</em></a> <i>`STREAM` &optional `KEY`</i>
+
+サポートする URL スキーム: HTTP/HTTPS
 
 `KEY` を指定した場合は指定したヘッダを返します。
 `KEY` を指定しなかった場合はすべてのヘッダを alist で返します。
@@ -487,6 +551,8 @@ xl-open-uri> (with-open-stream (s (open-uri:open-uri "http://www.hatena.ne.jp/")
 
 
 ### Function: <a name="status"><em>status</em></a> <i>`STREAM`</i>
+
+サポートする URL スキーム: HTTP/HTTPS
 
 対象となるリソースのステータスコードと reason phrase を多値で返します。
 

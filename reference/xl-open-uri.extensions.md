@@ -20,6 +20,11 @@
   * `xl-open-uri.ext`
   * `open-uri.ext`
 
+__See Also:__
+
+  * xl-open-uri
+  * xl-open-uri.extensions
+
 
 ----
 
@@ -46,7 +51,13 @@ user> (open "http://www.google.co.jp/")
 __See Also:__
 
   * [uninstall](#uninstall)
-
+  * open
+  * close
+  * open-uri
+  * close-uri
+  * with-open-file
+  * with-open-stream
+  * with-open-uri
 
 ### Function: <a name="uninstall"><em>uninstall</em></a> <i>&optional (`PACKAGE` \*package\*)</i>
 
@@ -67,3 +78,10 @@ http://www.google.co.jp/
 __See Also:__
 
   * [install](#install)
+  * open
+  * close
+  * open-uri
+  * close-uri
+  * with-open-file
+  * with-open-stream
+  * with-open-uri
