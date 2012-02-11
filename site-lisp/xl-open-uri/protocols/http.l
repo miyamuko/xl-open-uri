@@ -141,7 +141,7 @@
     (http-date-to-universal-time date)))
 
 
-(defun http-media-type (stream client)
+(defun http-media-type (client)
   (parse-media-type
    (http-response-header client :content-type)))
 
