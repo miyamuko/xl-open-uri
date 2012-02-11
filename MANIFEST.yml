@@ -1,11 +1,11 @@
-package: open-uri
+package: xl-open-uri
 version: 0.0.1
 
 sources:
   include:
-    - site-lisp/open-uri/**/*.l
+    - site-lisp/xl-open-uri/**/*.l
   exclude:
-    - site-lisp/open-uri/**/test/*.l
+    - site-lisp/xl-open-uri/**/test/*.l
 
 document:
   - README.md
