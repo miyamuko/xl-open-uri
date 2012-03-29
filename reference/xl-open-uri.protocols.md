@@ -68,8 +68,9 @@ xl-open-uri に任意のプロトコルハンドラを追加するための機�
 
     open-uri:last-modified が呼ばれたときに呼び出されます。
 
+----
 
-### 実装例
+実装例:
 
 ```lisp
 (defpackage :eval-protocol-handler
